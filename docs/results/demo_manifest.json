@@ -1,0 +1,126 @@
+{
+ "sources": {
+  "what": "own Looped-DiT B/16 generations (synthetic) published as ComfyUI-LoopedDiT v0.1.0 release asset demo_images_v0.1.0.zip",
+  "asset_sha256": "9e820a481d1a60aba4ccacaa9a32f5c0eb2d878d9ef31253e3a20743fb05b10e",
+  "selection": "fixed before any restoration run: prompts p0..p3, seed 7, loops 4 (p*_s7_l4.png); all 512x512 RGB"
+ },
+ "degradations": {
+  "noise": "additive Gaussian, sigma 25/255, numpy PCG64 seed 1234 + image index (0..3), rounded half to even, clipped to 0..255",
+  "blur": "PIL ImageFilter.GaussianBlur(radius=2.0)",
+  "jpeg": "PIL JPEG quality 15 (default 4:2:0 subsampling), decoded back to RGB",
+  "pillow": "12.3.0",
+  "numpy": "1.26.4"
+ },
+ "restoration": {
+  "node": "PixRestoreRestore, preprocess exact 512x512",
+  "model": "PixRestore-S (VCLab-PolyU/PixRestore@a5fe719)",
+  "steps": 1,
+  "cfg": 1.0,
+  "seeds": "seed = index of the input in sorted file-name order (0..11), the same seeds the official inference.py uses for that folder with --seed 0",
+  "via": "ComfyUI v0.38.0 HTTP queue, clean install of this repository, RTX 5090, Windows 11",
+  "equal_to_official_png": "all 12 outputs are byte-for-byte equal in 8-bit pixels to the official eager inference.py PNGs"
+ },
+ "items": [
+  {
+   "clean": "p0_s7_l4.png",
+   "input": "p0_s7_l4_noise.png",
+   "degradation": "noise",
+   "seed": 2,
+   "input_sha256": "8e0132ea524627df142ab7296fa56035596e9b307ccb87d7b925008602c769fb",
+   "clean_sha256": "b441f866bb933ecb859a94ef3636d5547d9e029d351648dba89e53c27511b2a5"
+  },
+  {
+   "clean": "p0_s7_l4.png",
+   "input": "p0_s7_l4_blur.png",
+   "degradation": "blur",
+   "seed": 0,
+   "input_sha256": "01b353391b844c53584c24524fd5a1bf0d52c77cccb74bfc0ac6a3a0b06c913f",
+   "clean_sha256": "b441f866bb933ecb859a94ef3636d5547d9e029d351648dba89e53c27511b2a5"
+  },
+  {
+   "clean": "p0_s7_l4.png",
+   "input": "p0_s7_l4_jpeg.png",
+   "degradation": "jpeg",
+   "seed": 1,
+   "input_sha256": "b3e20d1bd48472b98c1dce7ac505e832f27cd2d67e747257c5738e124c05eff8",
+   "clean_sha256": "b441f866bb933ecb859a94ef3636d5547d9e029d351648dba89e53c27511b2a5"
+  },
+  {
+   "clean": "p1_s7_l4.png",
+   "input": "p1_s7_l4_noise.png",
+   "degradation": "noise",
+   "seed": 5,
+   "input_sha256": "6e17bee253e70d21b1cb39f4175f6ed3cf6db3a64783fa5ffd56951cbbc3ef0b",
+   "clean_sha256": "3f136598b5052d7d7e643a2dade4a9262a3430a2863be584ba3f0bb09cd5c4fc"
+  },
+  {
+   "clean": "p1_s7_l4.png",
+   "input": "p1_s7_l4_blur.png",
+   "degradation": "blur",
+   "seed": 3,
+   "input_sha256": "7155bc47f659cf9a80b2494bef34bab9bf136b5a513d09695a9d22e84f30cd83",
+   "clean_sha256": "3f136598b5052d7d7e643a2dade4a9262a3430a2863be584ba3f0bb09cd5c4fc"
+  },
+  {
+   "clean": "p1_s7_l4.png",
+   "input": "p1_s7_l4_jpeg.png",
+   "degradation": "jpeg",
+   "seed": 4,
+   "input_sha256": "a0bc8e7c7f3a24621a380c4186fb2f7285bd296b7f23c2ac52cb7181980bf616",
+   "clean_sha256": "3f136598b5052d7d7e643a2dade4a9262a3430a2863be584ba3f0bb09cd5c4fc"
+  },
+  {
+   "clean": "p2_s7_l4.png",
+   "input": "p2_s7_l4_noise.png",
+   "degradation": "noise",
+   "seed": 8,
+   "input_sha256": "45e9e6d5b1750fdeec8f4e45c1c9fb8ca2e269f64ab714d9f2612829b718ce04",
+   "clean_sha256": "116c3f20b01ab9ca2e9a68d88ce09b8f1146a4a8f98b3887cdd959dfe2ad0d11"
+  },
+  {
+   "clean": "p2_s7_l4.png",
+   "input": "p2_s7_l4_blur.png",
+   "degradation": "blur",
+   "seed": 6,
+   "input_sha256": "3ec7397578a7cf454d22b7a5f06475edfd93a5704e429f7a7f825fb5e3fda98a",
+   "clean_sha256": "116c3f20b01ab9ca2e9a68d88ce09b8f1146a4a8f98b3887cdd959dfe2ad0d11"
+  },
+  {
+   "clean": "p2_s7_l4.png",
+   "input": "p2_s7_l4_jpeg.png",
+   "degradation": "jpeg",
+   "seed": 7,
+   "input_sha256": "876bc0a0eaf4cd775aee7ebd97aecb8f828841e6fe82730686bc85a83bd74123",
+   "clean_sha256": "116c3f20b01ab9ca2e9a68d88ce09b8f1146a4a8f98b3887cdd959dfe2ad0d11"
+  },
+  {
+   "clean": "p3_s7_l4.png",
+   "input": "p3_s7_l4_noise.png",
+   "degradation": "noise",
+   "seed": 11,
+   "input_sha256": "2601e67c0c569242503555a04fe41531adf394c8c872d8ecdbd6319463d9d118",
+   "clean_sha256": "58ff6fc7ba24f6f7f0a8ab07a529fe32ab206e1cdf04c3c0b35b36be1d07f68b"
+  },
+  {
+   "clean": "p3_s7_l4.png",
+   "input": "p3_s7_l4_blur.png",
+   "degradation": "blur",
+   "seed": 9,
+   "input_sha256": "b10cf29d6d62ebeb779c7891b1530a4c310064337696e88f4f2a2aa1c033c258",
+   "clean_sha256": "58ff6fc7ba24f6f7f0a8ab07a529fe32ab206e1cdf04c3c0b35b36be1d07f68b"
+  },
+  {
+   "clean": "p3_s7_l4.png",
+   "input": "p3_s7_l4_jpeg.png",
+   "degradation": "jpeg",
+   "seed": 10,
+   "input_sha256": "03238df4bf235b3adb978f0a1b4c2b81b65d37a2e1027c4afa2c53ef1a517422",
+   "clean_sha256": "58ff6fc7ba24f6f7f0a8ab07a529fe32ab206e1cdf04c3c0b35b36be1d07f68b"
+  }
+ ],
+ "figures": {
+  "grids": "docs/images/grid_<name>.png: rows noise/blur/jpeg, columns clean/input/output, cells downscaled to 256 px for display",
+  "crop": "docs/images/crop_p1_s7_l4_1to1.png: 200x200 crop at x 150..350, y 250..450, not resized"
+ },
+ "full_size_images": "release asset demo_images_v0.1.0.zip (clean, inputs, outputs, this manifest, SHA256SUMS)"
+}

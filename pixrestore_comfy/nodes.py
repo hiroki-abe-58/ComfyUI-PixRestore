@@ -71,8 +71,9 @@ class PixRestoreRestore(io.ComfyNode):
             inputs=[
                 PixRestoreModel.Input("model"),
                 io.Image.Input("image"),
-                io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFFFFFFFFFF,
-                             tooltip="Seed of the initial noise (the official inference.py default is 0). The output depends on it."),
+                io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFFFFFFFFFF, control_after_generate=io.ControlAfterGenerate.fixed,
+                             tooltip="Seed of the initial noise (the official inference.py default is 0). The output depends on it. "
+                                     "Kept fixed after each run unless you change the control."),
                 io.Combo.Input("preprocess", options=runtime.PREPROCESS_MODES, default=runtime.PREPROCESS_EXACT,
                                tooltip="Other sizes are refused unless you choose the official center crop "
                                        "(short side resized to 512 with bicubic, then the centre 512x512 is used)."),

@@ -1,0 +1,297 @@
+{
+ "candidate_tested_by_clean_install": "ff50a34cc8ec231c56448e677881b9680f4fe377",
+ "environment": {
+  "os": "Windows 11 Pro 10.0.26200 (native, no WSL)",
+  "gpu": "NVIDIA GeForce RTX 5090 32 GB (SM120), driver 595.95",
+  "torch": "2.14.1+cu130",
+  "comfyui": "v0.38.0 (6b747c0428c343e1417219641db93a4fb7cb69ae)",
+  "python": "3.12.13",
+  "reference_env": "upstream pins except torch (torch==2.4.0 has no SM120): accelerate 0.34.2, timm 1.0.30, numpy 1.26.4"
+ },
+ "official_reference": {
+  "code": "csslc/PixRestore@909ca06e614cf72e218d52b4fa41077c603d872b inference.py, unmodified, single process",
+  "weights": "VCLab-PolyU/PixRestore@a5fe719 pixrestore-s (config.json next to the weights)",
+  "dinov2": "facebookresearch/dinov2@7764ea0 local clone + dinov2_vits14_pretrain.pth",
+  "args": "--infer-steps 1 --cfg-scale 1.0 --seed 0 --test-mode center_crop (image i of a folder uses seed i)",
+  "as_written_needs_triton": "without Triton: TritonMissing at the first @torch.compile call (run ref01)",
+  "eager": "TORCHDYNAMO_DISABLE=1 (torch.compile returns the undecorated functions)",
+  "compiled": "triton-windows 3.8.0.post29 in a separate copy of the reference env"
+ },
+ "official_eager_repeatability": {
+  "png_plain_vs_capture_runs": {
+   "ref03a": {
+    "n": 12,
+    "bytes_equal": 12,
+    "uint8_equal": 12,
+    "max_abs": 0
+   },
+   "ref03b": {
+    "n": 12,
+    "bytes_equal": 12,
+    "uint8_equal": 12,
+    "max_abs": 0
+   },
+   "ref03c": {
+    "n": 12,
+    "bytes_equal": 12,
+    "uint8_equal": 12,
+    "max_abs": 0
+   }
+  },
+  "tensors_across_3_capture_runs": {
+   "ref03b": {
+    "n": 144,
+    "exact": 144,
+    "max_abs": 0.0
+   },
+   "ref03c": {
+    "n": 144,
+    "exact": 144,
+    "max_abs": 0.0
+   }
+  }
+ },
+ "official_compiled_vs_eager": {
+  "png": {
+   "ref04": {
+    "n": 12,
+    "bytes_equal": 0,
+    "uint8_equal": 0,
+    "max_abs": 5
+   }
+  },
+  "per_tensor": {
+   "dino_in": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "eps": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_1": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_10": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_2": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_4": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_6": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "feat_8": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "final01": {
+    "n": 12,
+    "exact": 0,
+    "max_abs": 0.02001953125,
+    "frac_values_differ": 0.335
+   },
+   "lq_in": {
+    "n": 12,
+    "exact": 12,
+    "max_abs": 0.0,
+    "frac_values_differ": 0.0
+   },
+   "restored": {
+    "n": 12,
+    "exact": 0,
+    "max_abs": 0.0400390625,
+    "frac_values_differ": 0.3366
+   },
+   "uint8": {
+    "n": 12,
+    "exact": 0,
+    "max_abs": 5.0,
+    "frac_values_differ": 0.1134
+   }
+  }
+ },
+ "node_runtime_vs_official_eager_direct": {
+  "all_layers_equal": true,
+  "n": 12,
+  "saveimage_uint8_equal_official_png": 12,
+  "flags_unchanged_by_call": true,
+  "cuda_rng_restored": true
+ },
+ "comfyui_queue_dev_install": {
+  "S1_official_parity": [
+   12,
+   12
+  ],
+  "S2_center_crop_on_512": [
+   2,
+   2
+  ],
+  "S3_center_crop_nonsquare": [
+   2,
+   2
+  ],
+  "S4_regen_ABA": [
+   4,
+   4
+  ],
+  "S5_unload_then_reload": true,
+  "S6_invalid_size_refused": true,
+  "S6_recovery": true,
+  "S7_interrupted": true,
+  "S7_recovery": true,
+  "S4_run_ids": [
+   17,
+   18,
+   19,
+   20
+  ],
+  "S1_first_prompt_exec_ms_incl_load": 3622,
+  "S1_warm_prompt_exec_ms_median": 116,
+  "S1_warm_prompt_exec_ms_range": [
+   110,
+   268
+  ],
+  "S1_warm_restore_s_median": 0.0465,
+  "cuda_max_allocated_mib": [
+   342
+  ],
+  "comfyui_flags_before_call": {
+   "float32_matmul_precision": "highest",
+   "matmul_allow_tf32": false,
+   "cudnn_allow_tf32": true,
+   "cudnn_benchmark": false,
+   "matmul_allow_bf16_reduced_precision_reduction": true,
+   "matmul_allow_fp16_reduced_precision_reduction": true,
+   "matmul_allow_fp16_accumulation": false,
+   "sdp_flash": true,
+   "sdp_mem_efficient": true,
+   "sdp_math": true,
+   "sdp_cudnn": true,
+   "sdp_math_fp16_bf16_reduction": true
+  },
+  "flags_restored_all": true
+ },
+ "comfyui_queue_clean_install": {
+  "S1_official_parity": [
+   12,
+   12
+  ],
+  "S2_center_crop_on_512": [
+   2,
+   2
+  ],
+  "S3_center_crop_nonsquare": [
+   2,
+   2
+  ],
+  "S4_regen_ABA": [
+   4,
+   4
+  ],
+  "S5_unload_then_reload": true,
+  "S6_invalid_size_refused": true,
+  "S6_recovery": true,
+  "S7_interrupted": true,
+  "S7_recovery": true,
+  "S4_run_ids": [
+   17,
+   18,
+   19,
+   20
+  ],
+  "S1_first_prompt_exec_ms_incl_load": 3684,
+  "S1_warm_prompt_exec_ms_median": 114,
+  "S1_warm_prompt_exec_ms_range": [
+   107,
+   255
+  ],
+  "S1_warm_restore_s_median": 0.0446,
+  "cuda_max_allocated_mib": [
+   342
+  ],
+  "comfyui_flags_before_call": {
+   "float32_matmul_precision": "highest",
+   "matmul_allow_tf32": false,
+   "cudnn_allow_tf32": true,
+   "cudnn_benchmark": false,
+   "matmul_allow_bf16_reduced_precision_reduction": true,
+   "matmul_allow_fp16_reduced_precision_reduction": true,
+   "matmul_allow_fp16_accumulation": false,
+   "sdp_flash": true,
+   "sdp_mem_efficient": true,
+   "sdp_math": true,
+   "sdp_cudnn": true,
+   "sdp_math_fp16_bf16_reduction": true
+  },
+  "flags_restored_all": true
+ },
+ "processes": {
+  "official_eager_run_12_images": {
+   "result": "OK",
+   "wall_s": 8.9,
+   "peak_private_gib": 3.982,
+   "peak_system_commit_gib": 76.906,
+   "peak_gpu_used_mib_whole_gpu": 2753,
+   "admission": {
+    "B_gib": 72.877,
+    "L_gib": 90.76,
+    "B_plus_P": 78.877,
+    "max": 84.222,
+    "phys_avail_gib": 20.755
+   }
+  },
+  "official_compiled_run_12_images": {
+   "result": "OK",
+   "wall_s": 73.64,
+   "peak_private_gib": 4.273,
+   "peak_system_commit_gib": 77.148,
+   "peak_gpu_used_mib_whole_gpu": 2876,
+   "admission": {
+    "B_gib": 72.929,
+    "L_gib": 90.76,
+    "B_plus_P": 78.929,
+    "max": 84.222,
+    "phys_avail_gib": 20.631
+   }
+  },
+  "comfyui_dev_server_session": {
+   "result": "FAILED",
+   "wall_s": 260.49,
+   "peak_private_gib": 5.309,
+   "peak_system_commit_gib": 79.08,
+   "peak_gpu_used_mib_whole_gpu": 2687,
+   "admission": {
+    "B_gib": 73.165,
+    "L_gib": 90.76,
+    "B_plus_P": 79.165,
+    "max": 84.222,
+    "phys_avail_gib": 20.108
+   }
+  }
+ }
+}

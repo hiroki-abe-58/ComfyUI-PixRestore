@@ -12,6 +12,8 @@ def test_node_schemas(comfy_dir):
     restore = ids["PixRestoreRestore"]
     names = [i.id for i in restore.inputs]
     assert names == ["model", "image", "seed", "preprocess"]
+    seed = next(i for i in restore.inputs if i.id == "seed")
+    assert seed.default == 0 and seed.control_after_generate == "fixed"  # the frontend would add "randomize" otherwise
     pre = next(i for i in restore.inputs if i.id == "preprocess")
     assert pre.options == runtime.PREPROCESS_MODES and pre.default == runtime.PREPROCESS_EXACT
     assert [o.display_name for o in restore.outputs] == ["image", "report"]
