@@ -1,0 +1,37 @@
+PixRestore for ComfyUI
+Copyright (c) 2026 hiroki-abe-58. MIT License (see LICENSE). The MIT License covers the files of this repository only.
+Unofficial integration. Not affiliated with or endorsed by the PixRestore authors, The Hong Kong Polytechnic
+University, OPPO Research Institute, Meta, or Comfy Org.
+
+No third-party code or model files are included in this repository.
+tools/setup_pixrestore.py downloads the following to the user's machine, at fixed revisions, and checks every file's
+SHA-256 (pixrestore_comfy/pins.py):
+
+- PixRestore source files (pixrestore/ package only, unmodified) from https://github.com/csslc/PixRestore
+  at commit 909ca06e614cf72e218d52b4fa41077c603d872b.
+  The project README says "This project is released under the Apache 2.0 license"; the LICENSE file it links to is
+  not in the repository at that commit. Some files state their origin: pixrestore/models/layers.py "adapted from
+  LightningDiT, DiT, and SiT"; rope.py "adapted from EVA-02 (MIT)"; swiglu.py "adapted from DINOv2 (Apache-2.0)".
+  (For reference, as read on 2026-10-05: facebookresearch/DiT is CC BY-NC 4.0; hustvl/LightningDiT and
+  willisma/SiT are MIT.) Check the upstream terms yourself for your use.
+- PixRestore-S weights and config (pixrestore-s/config.json, pixrestore-s/clean_weights/ema_model.safetensors) from
+  https://huggingface.co/VCLab-PolyU/PixRestore at revision a5fe719a0c517422cff9f7a4895ab303e2320d51.
+  Model card metadata: license apache-2.0.
+- DINOv2 source files (dinov2/ hub, models and layers packages, unmodified) from
+  https://github.com/facebookresearch/dinov2 at commit 7764ea0f912e53c92e82eb78a2a1631e92725fc8, and the ViT-S/14
+  weights https://dl.fbaipublicfiles.com/dinov2/dinov2_vits14/dinov2_vits14_pretrain.pth.
+  The DINOv2 README says "DINOv2 code and model weights are released under the Apache License 2.0". The same
+  repository also contains Cell-DINO and XRay-DINO parts under non-commercial terms; this integration does not
+  download or import them.
+
+Paper: Lingchen Sun et al., "PixRestore: Unified Image Restoration via Pixel Diffusion Transformer", arXiv:2608.16793.
+
+Demo images in docs/images and workflows/input
+- The clean images are the author's own Looped-DiT generations published with ComfyUI-LoopedDiT v0.1.0
+  (https://github.com/hiroki-abe-58/ComfyUI-LoopedDiT, release asset demo_images_v0.1.0.zip). They are synthetic.
+- The degraded images were made from them with fixed, documented operations (docs/results/demo_manifest.json).
+- The restored images are outputs of PixRestore-S. Restoration is generative: details can be invented or changed.
+
+Libraries used at run time (installed with ComfyUI or by requirements.txt, not included)
+- PyTorch and torchvision (BSD-style), timm (Apache License 2.0), einops (MIT), safetensors (Apache License 2.0),
+  Pillow, NumPy. ComfyUI (GPL-3.0) hosts the nodes.

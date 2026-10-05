@@ -1,0 +1,25 @@
+[project]
+name = "pixrestore"
+description = "PixRestore-S one-step image restoration for ComfyUI: 512x512 RGB, official path reproduced bit-exactly (eager mode), pinned and hash-checked upstream files."
+version = "0.1.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = ["timm>=0.9,<1.1"]
+
+[project.urls]
+Repository = "https://github.com/hiroki-abe-58/ComfyUI-PixRestore"
+
+[tool.comfy]
+PublisherId = "hiroki-abe-58"
+DisplayName = "PixRestore for ComfyUI"
+Icon = ""
+
+[tool.ruff]
+line-length = 150
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

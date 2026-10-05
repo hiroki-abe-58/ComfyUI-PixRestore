@@ -1,0 +1,49 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "pixrestore_sample_512_jpeg.png"
+    }
+  },
+  "2": {
+    "class_type": "PixRestoreLoader",
+    "inputs": {
+      "model": "pixrestore-s",
+      "verify_hashes": true
+    }
+  },
+  "3": {
+    "class_type": "PixRestoreRestore",
+    "inputs": {
+      "model": [
+        "2",
+        0
+      ],
+      "image": [
+        "1",
+        0
+      ],
+      "seed": 0,
+      "preprocess": "exact 512x512 (refuse other sizes)"
+    }
+  },
+  "4": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "3",
+        0
+      ],
+      "filename_prefix": "pixrestore/restored"
+    }
+  },
+  "5": {
+    "class_type": "PreviewAny",
+    "inputs": {
+      "source": [
+        "3",
+        1
+      ]
+    }
+  }
+}

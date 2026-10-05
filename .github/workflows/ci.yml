@@ -1,0 +1,107 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# CPU only. No released weights are downloaded: the parity tests use random weights with the released architecture.
+# The official inference.py runs unmodified in its own environment (upstream pins, TORCHDYNAMO_DISABLE=1) and the
+# node runtime must reproduce its PNGs exactly in a ComfyUI environment.
+env:
+  COMFYUI_REF: v0.38.0
+  COMFYUI_COMMIT: 6b747c0428c343e1417219641db93a4fb7cb69ae
+  PIXRESTORE_COMMIT: 909ca06e614cf72e218d52b4fa41077c603d872b
+  DINOV2_COMMIT: 7764ea0f912e53c92e82eb78a2a1631e92725fc8
+  HF_REVISION: a5fe719a0c517422cff9f7a4895ab303e2320d51
+  CONFIG_SHA256: 978deb1b0aaa544c12355ffb8ffffee1fbf012493de876736aba2c32185d18f4
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ComfyUI-PixRestore
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Reference checkouts and config (pinned)
+        run: |
+          # byte-exact references on every runner (Windows runners default to core.autocrlf=true)
+          git -c core.autocrlf=false clone --quiet --depth 1 --branch $env:COMFYUI_REF https://github.com/Comfy-Org/ComfyUI.git refs/ComfyUI
+          if ((git -C refs/ComfyUI rev-parse HEAD) -ne $env:COMFYUI_COMMIT) { throw "ComfyUI commit mismatch" }
+          git -c core.autocrlf=false clone --quiet https://github.com/csslc/PixRestore.git refs/PixRestore
+          git -C refs/PixRestore -c core.autocrlf=false checkout --quiet $env:PIXRESTORE_COMMIT
+          git -c core.autocrlf=false clone --quiet --filter=blob:none https://github.com/facebookresearch/dinov2.git refs/dinov2
+          git -C refs/dinov2 -c core.autocrlf=false checkout --quiet $env:DINOV2_COMMIT
+          Invoke-WebRequest -UseBasicParsing -OutFile refs/config.json "https://huggingface.co/VCLab-PolyU/PixRestore/resolve/$($env:HF_REVISION)/pixrestore-s/config.json"
+          if ((Get-FileHash refs/config.json -Algorithm SHA256).Hash.ToLower() -ne $env:CONFIG_SHA256) { throw "config.json hash mismatch" }
+
+      - name: Official reference environment (upstream pins, CPU torch)
+        run: |
+          python -m venv refenv
+          $rp = if ($IsWindows) { "refenv/Scripts/python" } else { "refenv/bin/python" }
+          & $rp -m pip install --quiet --upgrade pip
+          & $rp -m pip install --quiet torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
+          & $rp -m pip install --quiet "accelerate>=0.31,<1.0" "einops>=0.7" "numpy>=1.23,<2" "Pillow>=9.5" "PyYAML>=6" "safetensors>=0.4" "timm>=0.9,<1.1" "tqdm>=4.65"
+          & $rp -m pip list
+
+      - name: CPU reference (random weights) and unmodified official inference.py
+        env:
+          TORCHDYNAMO_DISABLE: "1"
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          $rp = Join-Path $PWD $(if ($IsWindows) { "refenv/Scripts/python" } else { "refenv/bin/python" })
+          $out = Join-Path $PWD "refs/cpuref"
+          & $rp ComfyUI-PixRestore/tests/make_cpu_reference.py --upstream refs/PixRestore --dinov2 refs/dinov2 --config refs/config.json --out $out
+          if ($LASTEXITCODE) { throw "make_cpu_reference failed" }
+          Push-Location refs/PixRestore
+          foreach ($k in "512", "crop") {
+            & $rp inference.py -c "$out/pixrestore-s" -i "$out/inputs_$k" -o "$out/official_$k" --infer-steps 1 --cfg-scale 1.0 --seed 0 --test-mode center_crop --dinov2-repository (Join-Path $PWD "../dinov2") --dinov2-checkpoint "$out/dinov2_vits14_pretrain.pth"
+            if ($LASTEXITCODE) { throw "official inference.py failed ($k)" }
+          }
+          Pop-Location
+          if ((git -C refs/PixRestore status --porcelain) -ne $null) { throw "upstream checkout changed" }
+
+      - name: Install (ComfyUI environment, CPU)
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r refs/ComfyUI/requirements.txt -r ComfyUI-PixRestore/requirements.txt pytest==8.4.2 ruff==0.14.1
+          pip list
+
+      - name: Lint
+        run: ruff check --no-cache ComfyUI-PixRestore
+
+      - name: No absolute local paths in the repository
+        run: |
+          $files = git -C ComfyUI-PixRestore ls-files | Where-Object { $_ -notmatch '\.(png|jpg)$' } | ForEach-Object { Join-Path ComfyUI-PixRestore $_ }  # tracked files only (not caches)
+          $hits = $files | Select-String -Pattern '[A-Za-z]:\\{1,2}[A-Za-z0-9_.-]+\\|/home/[a-z]+/|/Users/[A-Za-z]+/'
+          if ($hits) { $hits | ForEach-Object { "$($_.Path):$($_.LineNumber)" }; throw "absolute local path found" }
+
+      - name: Tests (references required, nothing may be skipped)
+        env:
+          PIXRESTORE_COMFYUI_DIR: ${{ github.workspace }}/refs/ComfyUI
+          PIXRESTORE_UPSTREAM_DIR: ${{ github.workspace }}/refs/PixRestore
+          PIXRESTORE_DINOV2_DIR: ${{ github.workspace }}/refs/dinov2
+          PIXRESTORE_CPU_REFERENCE: ${{ github.workspace }}/refs/cpuref
+          PIXRESTORE_REQUIRE_REFERENCES: "1"
+        run: |
+          Set-Location ComfyUI-PixRestore
+          python -m pytest tests -q -rs -p no:cacheprovider -W ignore::DeprecationWarning -W ignore::FutureWarning
