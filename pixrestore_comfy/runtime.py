@@ -9,7 +9,7 @@ Follows inference.py of csslc/PixRestore@909ca06 for --infer-steps 1 --cfg-scale
   torch.hub.load(<local repo>, "dinov2_vits14", source="local", pretrained=False) - loaded strictly from the checkpoint,
   with forward_with_features attached as in pixrestore/vision.py:load_dinov2();
 - per image: pil_to_tensor -> .to(device).float().div_(127.5).sub_(1); under torch.autocast(bfloat16) (= accelerate's
-  autocast for mixed_precision "bf16"): pixrestore.vision.extract_layers(), then
+  autocast for the released config's mixed_precision "bf16"): pixrestore.vision.extract_layers(), then
   PixelDiffusion.sample_multistep_fm(n_steps=1) (one denoiser call); then restored[0].float().cpu().add(1).mul(0.5)
   .clamp(0, 1) and torchvision's to_pil_image (which truncates to uint8), exactly as inference.py saves its PNG.
 Differences that do not change the numbers (checked against the official run, see docs/VERIFICATION.md):
@@ -139,6 +139,16 @@ def _seed(device: torch.device, seed: int) -> None:
             torch.cuda.manual_seed(seed)
     else:
         torch.manual_seed(seed)
+
+
+def _autocast(device: torch.device, mixed_precision: str):
+    """inference.py: Accelerator(mixed_precision=config.mixed_precision).autocast() - torch.autocast(bfloat16) for "bf16"
+    (the released config), nothing for "no" (used only by the CPU tests' random-weight config)."""
+    if mixed_precision == "bf16":
+        return torch.autocast(device_type=device.type, dtype=torch.bfloat16)
+    if mixed_precision in ("no", None):
+        return contextlib.nullcontext()
+    raise ValueError(f"mixed_precision {mixed_precision!r} is not supported")
 
 
 def _rng_devices(device: torch.device) -> list[int]:
@@ -397,7 +407,7 @@ def restore_one(loaded: Loaded, chw_u8: torch.Tensor, seed: int, before_forward=
         lq = chw_u8.unsqueeze(0).to(dev).float().div_(127.5).sub_(1)
         with torch.random.fork_rng(devices=_rng_devices(dev)):
             _seed(dev, int(seed))
-            with torch.autocast(device_type=dev.type, dtype=torch.bfloat16):
+            with _autocast(dev, cfg.mixed_precision):
                 if before_forward is not None:
                     before_forward()
                 features = vision.extract_layers(loaded.encoder, lq, cfg.encoder_layers, cfg.encoder_input_size)
@@ -412,6 +422,7 @@ def restore_one(loaded: Loaded, chw_u8: torch.Tensor, seed: int, before_forward=
         "seed": int(seed), "n_steps": 1, "cfg_scale": float(cfg.cfg_scale), "denoiser_calls": watched.calls,
         "input_uint8_sha": tensor_sha(chw_u8), "lq_sha": tensor_sha(lq), "eps_sha": watched.eps_sha[0] if watched.eps_sha else None,
         "features_sha": {str(k): tensor_sha(f) for k, f in zip(cfg.encoder_layers, features)},
+        "mixed_precision": cfg.mixed_precision,
         "features_dtype": str(features[0].dtype), "restored_sha": tensor_sha(restored), "restored_dtype": str(restored.dtype),
         "final01_sha": tensor_sha(final01), "uint8_sha": tensor_sha(u8),
         "restore_s": round(t1 - t0, 4), "postprocess_s": round(time.perf_counter() - t1, 4),

@@ -59,11 +59,15 @@ most 5.3 GiB private memory.
 ## CPU tests (CI, Ubuntu and Windows)
 
 No released weights: random weights with the released architecture (`tests/make_cpu_reference.py`). The unmodified
-official `inference.py` runs on the CPU in its own environment (upstream pins, `TORCHDYNAMO_DISABLE=1`, bf16 autocast);
-the node runtime must reproduce its PNGs exactly in a ComfyUI environment. Also covered: pinned file hashes, refusal of
+official `inference.py` runs on the CPU in its own environment (upstream pins, `TORCHDYNAMO_DISABLE=1`); the node
+runtime must reproduce its PNGs exactly in a ComfyUI environment. CI uses the released config with
+`"mixed_precision": "no"` (fp32): with bf16 autocast, a CPU without bf16 instructions needed minutes per image
+(measured locally with oneDNN limited to AVX2: 140 s instead of 1.4 s per image), and the first CI run was cancelled
+after 20 minutes in that step. The same tests with the released bf16 value pass locally (33/33). bf16 parity with the
+released weights is the GPU table above. Also covered: pinned file hashes, refusal of
 changed or missing upstream files, the official center crop (compared with upstream's own function), the 8-bit
 round trip through ComfyUI's LoadImage/SaveImage conversions for all 256 values, flag restore, config checks, and that
-the comparison fails when the seed changes or autocast is removed.
+the comparison fails when the seed changes or the DINOv2 features change by 0.1 %.
 
 ## Not verified
 

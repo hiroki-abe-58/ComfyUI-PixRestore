@@ -10,6 +10,11 @@ It writes random weights with the released PixRestore-S / DINOv2 ViT-S/14 archit
 upstream initialisation, so the output is not trivial) and deterministic synthetic test images. The official
 inference.py is then run on them by the caller (see .github/workflows/ci.yml), unmodified, on the CPU, with
 TORCHDYNAMO_DISABLE=1.
+
+--mixed-precision no writes the released config with "mixed_precision": "no" (fp32, no autocast). CI uses it because
+bf16 autocast on CPUs without bf16 instructions took minutes per image (measured locally with
+ONEDNN_MAX_CPU_ISA=AVX2: 140 s instead of 1.4 s). bf16 parity is checked on the GPU with the released weights and
+locally on the CPU with --mixed-precision bf16 (the released value).
 """
 
 from __future__ import annotations
@@ -49,12 +54,17 @@ def main() -> int:
     ap.add_argument("--dinov2", required=True)
     ap.add_argument("--config", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--mixed-precision", choices=("bf16", "no"), default="bf16")
     a = ap.parse_args()
     out = Path(a.out)
     sys.path.insert(0, str(Path(a.upstream).resolve()))
     import inference  # the unmodified upstream module (needs its own dependencies)
 
     cfg = json.loads(Path(a.config).read_text(encoding="utf-8"))
+    if cfg.get("mixed_precision") != "bf16":
+        raise SystemExit("expected the released config (mixed_precision bf16)")
+    cfg["mixed_precision"] = a.mixed_precision
+    written = dict(cfg)
     cfg["register_local_gate_logit_scale"] = True  # as in the released checkpoint
     torch.manual_seed(0)
     model = inference.build_model(SimpleNamespace(**cfg))
@@ -63,7 +73,10 @@ def main() -> int:
         model.local_gate_logit_scale.fill_(0.5)
     ck = out / "pixrestore-s"
     (ck / "clean_weights").mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(a.config, ck / "config.json")
+    if a.mixed_precision == "bf16":
+        shutil.copyfile(a.config, ck / "config.json")  # the released file, byte for byte
+    else:
+        (ck / "config.json").write_text(json.dumps(written, indent=2), encoding="utf-8", newline="\n")
     from safetensors.torch import save_file
 
     save_file({k: v.contiguous() for k, v in model.state_dict().items()}, str(ck / "clean_weights" / "ema_model.safetensors"))

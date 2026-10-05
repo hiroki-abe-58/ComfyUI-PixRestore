@@ -81,6 +81,14 @@ def test_official_flags_are_set_for_the_call_and_restored():
     assert runtime._flag_state() == before
 
 
+def test_only_bf16_and_fp32_are_accepted():
+    assert runtime._autocast(torch.device("cpu"), "bf16").fast_dtype == torch.bfloat16
+    with runtime._autocast(torch.device("cpu"), "no"):
+        assert not torch.is_autocast_enabled("cpu")
+    with pytest.raises(ValueError, match="fp16"):
+        runtime._autocast(torch.device("cpu"), "fp16")
+
+
 def test_config_values_are_checked(tmp_path):
     import json
 

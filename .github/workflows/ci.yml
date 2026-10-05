@@ -9,9 +9,10 @@ on:
 permissions:
   contents: read
 
-# CPU only. No released weights are downloaded: the parity tests use random weights with the released architecture.
-# The official inference.py runs unmodified in its own environment (upstream pins, TORCHDYNAMO_DISABLE=1) and the
-# node runtime must reproduce its PNGs exactly in a ComfyUI environment.
+# CPU only. No released weights are downloaded: the parity tests use random weights with the released architecture
+# and the released config with "mixed_precision": "no" (fp32). The official inference.py runs unmodified in its own
+# environment (upstream pins, TORCHDYNAMO_DISABLE=1) and the node runtime must reproduce its PNGs exactly in a ComfyUI
+# environment. bf16 parity is covered by the GPU runs with the released weights (docs/VERIFICATION.md).
 env:
   COMFYUI_REF: v0.38.0
   COMFYUI_COMMIT: 6b747c0428c343e1417219641db93a4fb7cb69ae
@@ -69,7 +70,8 @@ jobs:
         run: |
           $rp = Join-Path $PWD $(if ($IsWindows) { "refenv/Scripts/python" } else { "refenv/bin/python" })
           $out = Join-Path $PWD "refs/cpuref"
-          & $rp ComfyUI-PixRestore/tests/make_cpu_reference.py --upstream refs/PixRestore --dinov2 refs/dinov2 --config refs/config.json --out $out
+          # fp32 ("mixed_precision": "no"): bf16 autocast on CPUs without bf16 instructions takes minutes per image
+          & $rp ComfyUI-PixRestore/tests/make_cpu_reference.py --upstream refs/PixRestore --dinov2 refs/dinov2 --config refs/config.json --out $out --mixed-precision no
           if ($LASTEXITCODE) { throw "make_cpu_reference failed" }
           Push-Location refs/PixRestore
           foreach ($k in "512", "crop") {

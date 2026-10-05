@@ -1,19 +1,31 @@
 """The node runtime vs. the unmodified official inference.py on the CPU (random weights with the released architecture).
 
 The reference PNGs were written by the official CLI (--infer-steps 1 --cfg-scale 1.0 --seed 0 --test-mode center_crop,
-TORCHDYNAMO_DISABLE=1, accelerate bf16 autocast on the CPU). Image i of a folder uses seed i, so the runtime is given
-the same folder as one batch with seed 0. Comparison: decoded 8-bit pixels, exact. This is evidence about the code
-path on random weights, not about the released model (see docs/VERIFICATION.md for the GPU runs with real weights).
+TORCHDYNAMO_DISABLE=1) with the reference folder's config.json: the released one (bf16 autocast) or the same with
+"mixed_precision": "no" (fp32; used in CI, see tests/make_cpu_reference.py). Image i of a folder uses seed i, so the
+runtime is given the same folder as one batch with seed 0. Comparison: decoded 8-bit pixels, exact. This is evidence
+about the code path on random weights, not about the released model (docs/VERIFICATION.md has the GPU runs).
 """
 
-import contextlib
+import json
 
 import numpy as np
 import pytest
 import torch
 from PIL import Image
 
-from pixrestore_comfy import runtime
+from pixrestore_comfy import pins, runtime
+
+
+@pytest.fixture(scope="module", autouse=True)
+def reference_precision(cpu_reference):
+    """Accept the reference folder's mixed_precision (the released value is bf16; CI uses "no")."""
+    value = json.loads((cpu_reference / "pixrestore-s" / "config.json").read_text(encoding="utf-8"))["mixed_precision"]
+    assert value in ("bf16", "no")
+    old = pins.EXPECTED_CONFIG["mixed_precision"]
+    pins.EXPECTED_CONFIG["mixed_precision"] = value
+    yield value
+    pins.EXPECTED_CONFIG["mixed_precision"] = old
 
 
 def load_like_comfy(paths):
@@ -68,14 +80,23 @@ def test_same_input_twice_and_a_b_a_give_identical_results(loaded, cpu_reference
 
 
 def test_the_comparison_is_sensitive(loaded, cpu_reference, monkeypatch):
-    """Deliberate changes must break equality: another seed, and running without the official bf16 autocast."""
+    """Deliberate changes must break equality: another seed, and DINOv2 features changed by 0.1 %."""
     files, ref = official(cpu_reference, "512")
     img = load_like_comfy(files[:1])
     other_seed = runtime.restore(loaded, img, 1, runtime.PREPROCESS_EXACT)
     assert not (other_seed["uint8"][0].numpy() == ref[0]).all()
-    monkeypatch.setattr(torch, "autocast", lambda *a, **k: contextlib.nullcontext())
-    fp32 = runtime.restore(loaded, img, 0, runtime.PREPROCESS_EXACT)
-    assert not (fp32["uint8"][0].numpy() == ref[0]).all()
+    vision = loaded.mods["pixrestore.vision"]
+    orig = vision.extract_layers
+    monkeypatch.setattr(vision, "extract_layers", lambda *a, **k: [f * 1.001 for f in orig(*a, **k)])
+    changed = runtime.restore(loaded, img, 0, runtime.PREPROCESS_EXACT)
+    assert not (changed["uint8"][0].numpy() == ref[0]).all()
+
+
+def test_report_names_the_precision(loaded, cpu_reference, reference_precision):
+    files, _ = official(cpu_reference, "512")
+    rep = runtime.restore(loaded, load_like_comfy(files[:1]), 0, runtime.PREPROCESS_EXACT)["report"]["images"][0]
+    assert rep["mixed_precision"] == reference_precision
+    assert rep["features_dtype"] == "torch.float32"  # DINOv2 tokens leave the blocks in float32 in both modes
 
 
 def test_unload_then_reload_gives_the_same_result(models_base, cpu_reference):
