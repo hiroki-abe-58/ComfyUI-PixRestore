@@ -84,7 +84,8 @@ def main() -> int:
                     for k, v in named.items():
                         if v == "randomize":
                             named[k] = "fixed"
-            (args.out / f"{name}.json").write_text(json.dumps(res["ui"], indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+            (args.out / f"{name}.json").write_text(json.dumps(res["ui"], indent=1, ensure_ascii=False) + "\n", encoding="utf-8",
+                                                   newline="\n")
         report["page_errors"] = errors
         browser.close()
     print(json.dumps(report, indent=1, ensure_ascii=False))

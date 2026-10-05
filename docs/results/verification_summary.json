@@ -1,5 +1,5 @@
 {
- "candidate_tested_by_clean_install": "ff50a34cc8ec231c56448e677881b9680f4fe377",
+ "candidate_tested_by_clean_install": "f2d9b80ec157af2349d6e5a2071ba3116684a422",
  "environment": {
   "os": "Windows 11 Pro 10.0.26200 (native, no WSL)",
   "gpu": "NVIDIA GeForce RTX 5090 32 GB (SM120), driver 595.95",
@@ -142,7 +142,7 @@
   "flags_unchanged_by_call": true,
   "cuda_rng_restored": true
  },
- "comfyui_queue_dev_install": {
+ "comfyui_queue_dev_install_first_candidate_ff50a34": {
   "S1_official_parity": [
    12,
    12
@@ -224,13 +224,13 @@
    19,
    20
   ],
-  "S1_first_prompt_exec_ms_incl_load": 3684,
-  "S1_warm_prompt_exec_ms_median": 114,
+  "S1_first_prompt_exec_ms_incl_load": 3991,
+  "S1_warm_prompt_exec_ms_median": 116,
   "S1_warm_prompt_exec_ms_range": [
-   107,
-   255
+   110,
+   266
   ],
-  "S1_warm_restore_s_median": 0.0446,
+  "S1_warm_restore_s_median": 0.044,
   "cuda_max_allocated_mib": [
    342
   ],

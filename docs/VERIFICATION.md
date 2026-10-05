@@ -48,7 +48,7 @@ Windows 11 native, RTX 5090 32 GB (driver 595.95), torch 2.14.1+cu130, ComfyUI v
 | non-512 input in exact mode | 768x576, 768x768 | refused with a message naming the size and the center-crop option; next prompt OK |
 | interrupt during a 64-image batch | | stopped after 18 images (`execution_interrupted`); next prompt OK and identical |
 | global flags | ComfyUI sets `allow_fp16_bf16_reduction_math_sdp(True)` | official defaults set during the call, ComfyUI's values back afterwards; CUDA RNG state restored |
-| clean install | `git archive` of the tested commit into `custom_nodes/pixrestore-clean-install` of a fresh ComfyUI v0.38.0 with a fresh venv, `tools/setup_pixrestore.py` downloading all 28 files | all of the above repeated: same results |
+| clean install | `git archive` of the commit into a differently named `custom_nodes` folder of a fresh ComfyUI v0.38.0 with a fresh venv, `tools/setup_pixrestore.py` downloading all 28 files; done for `ff50a34` and again for `f2d9b80` (the code of v0.1.0) | all of the above repeated: same results |
 | frontend | the two example workflows loaded with the ComfyUI frontend's `loadApiJson` | no missing nodes, `graphToPrompt` round trip identical |
 
 Measured on that machine (one process, sequential prompts; not a benchmark):
